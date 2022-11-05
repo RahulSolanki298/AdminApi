@@ -138,6 +138,13 @@ namespace AdminApi.Controllers
             }
         }
 
+        private int setUserRole(string RoleName)
+        {
+            return (from x in _context.UserRole
+                    where x.RoleName == RoleName
+                    select x.UserRoleId).FirstOrDefault();
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<SchoolModel>> CreateSchool(SchoolModel model)
@@ -146,41 +153,40 @@ namespace AdminApi.Controllers
 
             Users principle = new Users
             {
-                UserRoleId = 3,
+                UserRoleId = setUserRole(CustomAttributes.Principle),
                 FirstName = model.SchoolPrincipleFirstName,
                 MiddleName = model.SchoolPrincipleMiddelName,
                 LastName = model.SchoolPrincipleLastName,
                 Mobile = model.SchoolPrinciplePhone,
                 Password = DataEncript.ConvertToEncrypt(model.SchoolPrinciplePhone),
                 UserName = model.SchoolPrinciplePhone,
-                Email = model.SchoolPrincipleEmail
-                //SchoolId = school.SchoolId
+                Email = model.SchoolPrincipleEmail,
+                SchoolId = model.SchoolId
             };
 
             Users Owner = new Users
             {
-
-                UserRoleId = 1,
+                UserRoleId = setUserRole(CustomAttributes.Admin),
                 FirstName = model.SchoolOwnerFirstName,
                 MiddleName = model.SchoolOwnerMiddelName,
                 LastName = model.SchoolOwnerLastName,
                 Mobile = model.SchoolOwnerPhone,
                 Password = DataEncript.ConvertToEncrypt(model.SchoolOwnerPhone),
                 UserName = model.SchoolOwnerPhone,
-                Email = model.SchoolOwnerEmail
-                //SchoolId = school.SchoolId
+                Email = model.SchoolOwnerEmail,
+                SchoolId = model.SchoolId
             };
-            Users Coordinator = new Users
+            Users coordinator = new Users
             {
-                UserRoleId = 14,
+                UserRoleId = setUserRole(CustomAttributes.Coordinator),
                 FirstName = model.SchoolCoordinatorFirstName,
                 MiddleName = model.SchoolCoordinatorMiddelName,
                 LastName = model.SchoolCoordinatorLastName,
                 Mobile = model.SchoolCoordinatorPhone,
                 Password = DataEncript.ConvertToEncrypt(model.SchoolCoordinatorPhone),
                 UserName = model.SchoolCoordinatorPhone,
-                Email = model.SchoolCoordinatorEmail
-                //SchoolId = school.SchoolId
+                Email = model.SchoolCoordinatorEmail,
+                SchoolId = model.SchoolId
             };
 
             var objCheckPrinciple = _context.Users.SingleOrDefault(opt => opt.UserName == principle.UserName);
@@ -197,7 +203,7 @@ namespace AdminApi.Controllers
             }
             else
             {
-                objCheckPrinciple.UserRoleId = 3;
+                objCheckPrinciple.UserRoleId = setUserRole(CustomAttributes.Principle);
                 objCheckPrinciple.FirstName = model.SchoolPrincipleFirstName;
                 objCheckPrinciple.MiddleName = model.SchoolPrincipleMiddelName;
                 objCheckPrinciple.LastName = model.SchoolPrincipleLastName;
@@ -222,7 +228,7 @@ namespace AdminApi.Controllers
             }
             else
             {
-                objCheckOwner.UserRoleId = 1;
+                objCheckOwner.UserRoleId = setUserRole(CustomAttributes.Admin);
                 objCheckOwner.FirstName = model.SchoolOwnerFirstName;
                 objCheckOwner.MiddleName = model.SchoolOwnerMiddelName;
                 objCheckOwner.LastName = model.SchoolOwnerLastName;
@@ -233,13 +239,13 @@ namespace AdminApi.Controllers
                 var obj = _userRepo.Update(objCheckOwner);
             }
 
-            var objCheckCoordinator = _context.Users.SingleOrDefault(opt => opt.UserName == Coordinator.UserName);
+            var objCheckCoordinator = _context.Users.SingleOrDefault(opt => opt.UserName == coordinator.UserName);
             if (objCheckCoordinator == null)
             {
-                Coordinator.DateAdded = DateTime.Now;
-                Coordinator.IsActive = true;
-                Coordinator.IsPasswordChange = false;
-                var obj = _userRepo.Insert(Coordinator);
+                coordinator.DateAdded = DateTime.Now;
+                coordinator.IsActive = true;
+                coordinator.IsPasswordChange = false;
+                var obj = _userRepo.Insert(coordinator);
             }
             else if (objCheckCoordinator != null && model.SchoolId == 0)
             {
@@ -247,7 +253,7 @@ namespace AdminApi.Controllers
             }
             else
             {
-                objCheckCoordinator.UserRoleId = 14;
+                objCheckCoordinator.UserRoleId = setUserRole(CustomAttributes.Coordinator);
                 objCheckCoordinator.FirstName = model.SchoolCoordinatorFirstName;
                 objCheckCoordinator.MiddleName = model.SchoolCoordinatorMiddelName;
                 objCheckCoordinator.LastName = model.SchoolCoordinatorLastName;
@@ -260,7 +266,7 @@ namespace AdminApi.Controllers
 
             var OwnerId = Owner.UserId;
             var principleId = principle.UserId;
-            var CoordinatorId = Coordinator.UserId;
+            var CoordinatorId = coordinator.UserId;
 
             if (model.SchoolId > 0)
             {
@@ -318,7 +324,6 @@ namespace AdminApi.Controllers
                     SchoolTrustName = model.SchoolTrustName,
                     SchoolPAN = model.SchoolPAN,
                     SchoolGSTNo = model.SchoolGSTNo,
-
                     IsActive = 1,
                 };
 
@@ -400,7 +405,7 @@ namespace AdminApi.Controllers
 
         // DELETE: api/Schools/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> DeleteSchool(int id)
+        public IActionResult DeleteSchool(int id)
         {
             try
             {

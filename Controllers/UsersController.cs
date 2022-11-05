@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -516,12 +518,12 @@ namespace AdminApi.Controllers
         ///</summary>
         [HttpGet]
         [Authorize(Roles = "Admin,User")]
-        public ActionResult GetStudentList()
+        public async Task<ActionResult> GetStudentList()
         {
-            var studentList = (from stud in _context.ParentStudent
+            var studentList = await (from stud in _context.ParentStudent
                                join studDT in _context.Users on stud.StudentId equals studDT.UserId
-                               join school in _context.Schools on stud.SchoolId equals school.SchoolId
-                               join cls in _context.ClassMasters on school.SchoolId equals cls.SchoolId
+                               join school in _context.Schools on stud.SchoolId equals school.SchoolId 
+                               join cls in _context.ClassMasters on studDT.ClassId equals cls.ClassId
                                select new StudentModel
                                {
                                    StudentId = stud.StudentId,
@@ -532,12 +534,12 @@ namespace AdminApi.Controllers
                                    ClassId = studDT.ClassId,
                                    Mobile = studDT.Mobile,
                                    Email = studDT.Email,
-                                   SchoolName = school.SchoolName,
+                                   SchoolName =school.SchoolName,
                                    ClassName = cls.ClassName,
                                    DateOfBirth = studDT.DateOfBirth,
                                    UserName = studDT.UserName,
 
-                               }).ToList();
+                               }).ToListAsync();
             var totalStudent = studentList.Count();
             return Ok(new { data = studentList, recordsTotal = totalStudent, recordsFiltered = totalStudent });
 

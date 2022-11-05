@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 
 namespace AdminApi.Controllers
 {
@@ -54,16 +55,16 @@ namespace AdminApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetStudent(int id)
+        public async Task<IActionResult> GetStudent(int id)
         {
 
-            var singleStudent = (from stud in _context.ParentStudent
+            var singleStudent = await (from stud in _context.ParentStudent
                                  join studDT in _context.Users on stud.StudentId equals studDT.UserId
-                                 join father in _context.Users on stud.FatherId equals father.UserId
-                                 join mother in _context.Users on stud.MotherId equals mother.UserId
-                                 join guard in _context.Users on stud.GuardianId equals guard.UserId
-                                 join school in _context.Schools on stud.SchoolId equals school.SchoolId
-                                 join cls in _context.ClassMasters on school.SchoolId equals cls.SchoolId
+                                 join father in _context.Users on stud.FatherId equals father.UserId into fatherGroup from ftype in fatherGroup.DefaultIfEmpty()
+                                 join mother in _context.Users on stud.MotherId equals mother.UserId into motherGroup from mtype in motherGroup.DefaultIfEmpty()
+                                 join guard in _context.Users on stud.GuardianId equals guard.UserId into guardinGroup from gtype in guardinGroup.DefaultIfEmpty()
+                                 join school in _context.Schools on stud.SchoolId equals school.SchoolId into schoolGroup from stype in schoolGroup.DefaultIfEmpty()
+                                 join cls in _context.ClassMasters on studDT.ClassId equals cls.ClassId into classGroup from ctype in classGroup.DefaultIfEmpty()
                                  where stud.StudentId == id
                                  select new StudentModel
                                  {
@@ -74,26 +75,26 @@ namespace AdminApi.Controllers
                                      ClassId = studDT.ClassId,
                                      Mobile = studDT.Mobile,
                                      Email = studDT.Email,
-                                     SchoolName = school.SchoolName,
-                                     ClassName = cls.ClassName,
+                                     SchoolName = stype.SchoolName,
+                                     ClassName = ctype.ClassName,
                                      DateOfBirth = studDT.DateOfBirth,
-                                     FatherEmail = father.Email,
-                                     FatherFirstName = father.FirstName,
-                                     FatherMiddleName = father.MiddleName,
-                                     FatherLastName = father.LastName,
-                                     FatherMobile = father.Mobile,
-                                     MotherEmail = mother.Email,
-                                     MotherFirstName = mother.FirstName,
-                                     MotherMiddleName = mother.MiddleName,
-                                     MotherLastName = mother.LastName,
-                                     MotherMobile = mother.Mobile,
-                                     GuardianEmail = guard.Email,
-                                     GuardianFirstName = guard.FirstName,
-                                     GuardianMiddleName = guard.MiddleName,
-                                     GuardianLastName = guard.LastName,
-                                     GuardianMobile = guard.Mobile,
+                                     FatherEmail = ftype.Email,
+                                     FatherFirstName = ftype.FirstName,
+                                     FatherMiddleName = ftype.MiddleName,
+                                     FatherLastName = ftype.LastName,
+                                     FatherMobile = ftype.Mobile,
+                                     MotherEmail = mtype.Email,
+                                     MotherFirstName = mtype.FirstName,
+                                     MotherMiddleName = mtype.MiddleName,
+                                     MotherLastName = mtype.LastName,
+                                     MotherMobile = mtype.Mobile,
+                                     GuardianEmail = gtype.Email,
+                                     GuardianFirstName = gtype.FirstName,
+                                     GuardianMiddleName = gtype.MiddleName,
+                                     GuardianLastName = gtype.LastName,
+                                     GuardianMobile = gtype.Mobile,
                                      UserName = studDT.UserName,
-                                 }).FirstOrDefault();
+                                 }).FirstOrDefaultAsync();
             return Ok(singleStudent);
         }
 
