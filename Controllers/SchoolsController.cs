@@ -2,21 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using AdminApi.Models;
 using AdminApi.Models.School;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
 using AdminApi.ViewModels;
-using AdminApi.Migrations;
 using AdminApi.Models.User;
 using Microsoft.Extensions.Configuration;
 using AdminApi.Models.Helper;
-using AdminApi.ViewModels.User;
 using AdminApi.Helpers;
-using System.Reflection;
 
 namespace AdminApi.Controllers
 {
@@ -149,7 +144,7 @@ namespace AdminApi.Controllers
         [HttpPost]
         public async Task<ActionResult<SchoolModel>> CreateSchool(SchoolModel model)
         {
-            model.IsActive = 1;
+            model.IsActive = CustomAttributes.ActiveTrue;
 
             Users principle = new Users
             {
@@ -324,7 +319,7 @@ namespace AdminApi.Controllers
                     SchoolTrustName = model.SchoolTrustName,
                     SchoolPAN = model.SchoolPAN,
                     SchoolGSTNo = model.SchoolGSTNo,
-                    IsActive = 1,
+                    IsActive = CustomAttributes.ActiveTrue,
                 };
 
                 var objschool = _context.Schools.Add(school);
@@ -339,7 +334,6 @@ namespace AdminApi.Controllers
 
                     var schoolId = school.SchoolId;
                     int classId = kvp.Key;
-                    int IsActive = 1;
                     int AcademicYear = Convert.ToInt32(model.AcademicYear);
                     int divisioncnt = Convert.ToInt32(kvp.Value);
                     // decimal objbookprice = Convert.ToDecimal(kvp.Value);
@@ -351,7 +345,7 @@ namespace AdminApi.Controllers
                         {
                             SchoolId = school.SchoolId,
                             ClassId = classId,
-                            IsActive = 1,
+                            IsActive = CustomAttributes.ActiveTrue,
                             AcademyYearId = AcademicYear,
                             Division = ((char)divnumber).ToString()
 
@@ -370,9 +364,7 @@ namespace AdminApi.Controllers
 
                     var schoolId = school.SchoolId;
                     int classId = kvp.Key;
-                    int IsActive = 1;
                     int AcademicYear = Convert.ToInt32(model.AcademicYear);
-                    //int divisioncnt = Convert.ToInt32(Form["TotalDivisions_" + i]);
                     decimal objbookprice = Convert.ToDecimal(kvp.Value);
 
                     SchoolBookPrice schoolBookPrice = new SchoolBookPrice
@@ -380,7 +372,7 @@ namespace AdminApi.Controllers
                         SchoolId = schoolId,
                         AcademyYearId = AcademicYear,
                         ClassId = classId,
-                        Price = objbookprice
+                        Price = objbookprice,
                     };
 
                     _context.SchoolBookPrice.Add(schoolBookPrice);
