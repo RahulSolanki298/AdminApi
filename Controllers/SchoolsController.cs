@@ -26,7 +26,7 @@ namespace AdminApi.Controllers
         private readonly ISqlRepository<LogHistory> _logHistoryRepo;
         private readonly IConfiguration _config;
         private readonly ISqlRepository<School> _schoolRepo;
-
+        SchoolPublicMethods schoolPublicMethods;
         public SchoolsController(IConfiguration config,
                                 AppDbContext context,
                                 ISqlRepository<Users> userRepo,
@@ -133,19 +133,11 @@ namespace AdminApi.Controllers
             }
         }
 
-        private int setUserRole(string RoleName)
-        {
-            return (from x in _context.UserRole
-                    where x.RoleName == RoleName
-                    select x.UserRoleId).FirstOrDefault();
-        }
-
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<SchoolModel>> CreateSchool(SchoolModel model)
         {
-            model.IsActive = CustomAttributes.ActiveTrue;
-
+            model.IsActive = CustomAttributes.ValueTrue;
             Users principle = new Users
             {
                 UserRoleId = setUserRole(CustomAttributes.Principle),
@@ -213,8 +205,8 @@ namespace AdminApi.Controllers
             if (objCheckOwner == null)
             {
                 Owner.DateAdded = DateTime.Now;
-                Owner.IsActive = true;
-                Owner.IsPasswordChange = false;
+                Owner.IsActive = CustomAttributes.ActiveTrue;
+                Owner.IsPasswordChange = CustomAttributes.ActiveFalse;
                 var obj = _userRepo.Insert(Owner);
             }
             else if (objCheckOwner != null && model.SchoolId == 0)
@@ -289,7 +281,7 @@ namespace AdminApi.Controllers
                 result.SchoolTrustName = model.SchoolTrustName;
                 result.SchoolPAN = model.SchoolPAN;
                 result.SchoolGSTNo = model.SchoolGSTNo;
-                result.IsActive = 1;
+                result.IsActive = CustomAttributes.ValueTrue;
                 await _context.SaveChangesAsync();
             }
             else
@@ -319,7 +311,7 @@ namespace AdminApi.Controllers
                     SchoolTrustName = model.SchoolTrustName,
                     SchoolPAN = model.SchoolPAN,
                     SchoolGSTNo = model.SchoolGSTNo,
-                    IsActive = CustomAttributes.ActiveTrue,
+                    IsActive = CustomAttributes.ValueTrue,
                 };
 
                 var objschool = _context.Schools.Add(school);
@@ -345,7 +337,7 @@ namespace AdminApi.Controllers
                         {
                             SchoolId = school.SchoolId,
                             ClassId = classId,
-                            IsActive = CustomAttributes.ActiveTrue,
+                            IsActive = CustomAttributes.ValueTrue,
                             AcademyYearId = AcademicYear,
                             Division = ((char)divnumber).ToString()
 
@@ -413,6 +405,14 @@ namespace AdminApi.Controllers
         private bool SchoolExists(int id)
         {
             return _context.Schools.Any(e => e.SchoolId == id);
+        }
+
+        // Manage Role
+        private int setUserRole(string RoleName)
+        {
+            return (from x in _context.UserRole
+                    where x.RoleName == RoleName
+                    select x.UserRoleId).FirstOrDefault();
         }
     }
 }

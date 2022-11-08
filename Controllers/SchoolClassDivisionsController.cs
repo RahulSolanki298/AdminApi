@@ -44,10 +44,10 @@ namespace AdminApi.Controllers
         }
 
         // GET: api/SchoolClassDivisions
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<SchoolClassDivision>>> GetschoolClassDivisions()
+        [HttpGet("{schoolId}")]
+        public async Task<ActionResult<IEnumerable<SchoolClassDivision>>> GetschoolClassDivisions(int? schoolId)
         {
-            var teachingplanlist = _schoolClassDivisionRepo.SelectAllByClause();
+            var teachingplanlist = _schoolClassDivisionRepo.SelectAllByClause(s => s.SchoolId == schoolId);
             var totalRecords = teachingplanlist.Count();
             return Ok(new { data = teachingplanlist, recordsTotal = totalRecords, recordsFiltered = totalRecords });
         }

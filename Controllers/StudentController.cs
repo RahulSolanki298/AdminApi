@@ -34,6 +34,7 @@ namespace AdminApi.Controllers
         private readonly ISqlRepository<eBook> _ebook;
         private readonly ISqlRepository<eBookChapter> _ebookChapter;
         private readonly ISqlRepository<Users> _userRepo;
+        SchoolPublicMethods schoolPublicMethods;
 
         public StudentController(AppDbContext context,
                             IConfiguration config,
@@ -52,6 +53,7 @@ namespace AdminApi.Controllers
             _ebook = ebook;
             _ebookChapter = ebookChapter;
             _userRepo = userRepo;
+            schoolPublicMethods=new SchoolPublicMethods();
         }
 
         [HttpGet("{id}")]
@@ -59,42 +61,47 @@ namespace AdminApi.Controllers
         {
 
             var singleStudent = await (from stud in _context.ParentStudent
-                                 join studDT in _context.Users on stud.StudentId equals studDT.UserId
-                                 join father in _context.Users on stud.FatherId equals father.UserId into fatherGroup from ftype in fatherGroup.DefaultIfEmpty()
-                                 join mother in _context.Users on stud.MotherId equals mother.UserId into motherGroup from mtype in motherGroup.DefaultIfEmpty()
-                                 join guard in _context.Users on stud.GuardianId equals guard.UserId into guardinGroup from gtype in guardinGroup.DefaultIfEmpty()
-                                 join school in _context.Schools on stud.SchoolId equals school.SchoolId into schoolGroup from stype in schoolGroup.DefaultIfEmpty()
-                                 join cls in _context.ClassMasters on studDT.ClassId equals cls.ClassId into classGroup from ctype in classGroup.DefaultIfEmpty()
-                                 where stud.StudentId == id
-                                 select new StudentModel
-                                 {
-                                     FirstName = studDT.FirstName,
-                                     MiddleName = studDT.MiddleName,
-                                     LastName = studDT.LastName,
-                                     SchoolId = studDT.SchoolId,
-                                     ClassId = studDT.ClassId,
-                                     Mobile = studDT.Mobile,
-                                     Email = studDT.Email,
-                                     SchoolName = stype.SchoolName,
-                                     ClassName = ctype.ClassName,
-                                     DateOfBirth = studDT.DateOfBirth,
-                                     FatherEmail = ftype.Email,
-                                     FatherFirstName = ftype.FirstName,
-                                     FatherMiddleName = ftype.MiddleName,
-                                     FatherLastName = ftype.LastName,
-                                     FatherMobile = ftype.Mobile,
-                                     MotherEmail = mtype.Email,
-                                     MotherFirstName = mtype.FirstName,
-                                     MotherMiddleName = mtype.MiddleName,
-                                     MotherLastName = mtype.LastName,
-                                     MotherMobile = mtype.Mobile,
-                                     GuardianEmail = gtype.Email,
-                                     GuardianFirstName = gtype.FirstName,
-                                     GuardianMiddleName = gtype.MiddleName,
-                                     GuardianLastName = gtype.LastName,
-                                     GuardianMobile = gtype.Mobile,
-                                     UserName = studDT.UserName,
-                                 }).FirstOrDefaultAsync();
+                                       join studDT in _context.Users on stud.StudentId equals studDT.UserId
+                                       join father in _context.Users on stud.FatherId equals father.UserId into fatherGroup
+                                       from ftype in fatherGroup.DefaultIfEmpty()
+                                       join mother in _context.Users on stud.MotherId equals mother.UserId into motherGroup
+                                       from mtype in motherGroup.DefaultIfEmpty()
+                                       join guard in _context.Users on stud.GuardianId equals guard.UserId into guardinGroup
+                                       from gtype in guardinGroup.DefaultIfEmpty()
+                                       join school in _context.Schools on stud.SchoolId equals school.SchoolId into schoolGroup
+                                       from stype in schoolGroup.DefaultIfEmpty()
+                                       join cls in _context.ClassMasters on studDT.ClassId equals cls.ClassId into classGroup
+                                       from ctype in classGroup.DefaultIfEmpty()
+                                       where stud.StudentId == id
+                                       select new StudentModel
+                                       {
+                                           FirstName = studDT.FirstName,
+                                           MiddleName = studDT.MiddleName,
+                                           LastName = studDT.LastName,
+                                           SchoolId = studDT.SchoolId,
+                                           ClassId = studDT.ClassId,
+                                           Mobile = studDT.Mobile,
+                                           Email = studDT.Email,
+                                           SchoolName = stype.SchoolName,
+                                           ClassName = ctype.ClassName,
+                                           DateOfBirth = studDT.DateOfBirth,
+                                           FatherEmail = ftype.Email,
+                                           FatherFirstName = ftype.FirstName,
+                                           FatherMiddleName = ftype.MiddleName,
+                                           FatherLastName = ftype.LastName,
+                                           FatherMobile = ftype.Mobile,
+                                           MotherEmail = mtype.Email,
+                                           MotherFirstName = mtype.FirstName,
+                                           MotherMiddleName = mtype.MiddleName,
+                                           MotherLastName = mtype.LastName,
+                                           MotherMobile = mtype.Mobile,
+                                           GuardianEmail = gtype.Email,
+                                           GuardianFirstName = gtype.FirstName,
+                                           GuardianMiddleName = gtype.MiddleName,
+                                           GuardianLastName = gtype.LastName,
+                                           GuardianMobile = gtype.Mobile,
+                                           UserName = studDT.UserName,
+                                       }).FirstOrDefaultAsync();
             return Ok(singleStudent);
         }
 
@@ -103,51 +110,52 @@ namespace AdminApi.Controllers
         {
             Users father = new Users
             {
-                UserRoleId = 7,
-                IsFather = 1,
+                UserRoleId = setUserRole(CustomAttributes.Parents),
+                IsFather = CustomAttributes.ValueTrue,
                 FirstName = model.FatherFirstName,
                 MiddleName = model.FatherMiddleName,
                 LastName = model.FatherLastName,
                 Mobile = model.FatherMobile,
                 Password = DataEncript.ConvertToEncrypt(model.FatherMobile),
                 UserName = model.FatherMobile,
-                Email = model.FatherEmail
-                //SchoolId = school.SchoolId
+                Email = model.FatherEmail,
+                SchoolId = model.SchoolId
             };
 
             Users mother = new Users
             {
 
-                UserRoleId = 7,
-                IsMother = 1,
+                UserRoleId = setUserRole(CustomAttributes.Parents),
+                IsMother = CustomAttributes.ValueTrue,
                 FirstName = model.MotherFirstName,
                 MiddleName = model.MotherMiddleName,
                 LastName = model.MotherLastName,
                 Mobile = model.MotherMobile,
                 Password = DataEncript.ConvertToEncrypt(model.MotherMobile),
                 UserName = model.MotherMobile,
-                Email = model.MotherEmail
-                //SchoolId = school.SchoolId
+                Email = model.MotherEmail,
+                SchoolId = model.SchoolId
             };
             Users guardian = new Users
             {
-                UserRoleId = 7,
+                UserRoleId = setUserRole(CustomAttributes.Parents),
                 FirstName = model.GuardianFirstName,
                 MiddleName = model.GuardianMiddleName,
                 LastName = model.GuardianLastName,
                 Mobile = model.GuardianMobile,
                 Password = DataEncript.ConvertToEncrypt(model.GuardianMobile),
                 UserName = model.GuardianMobile,
-                Email = model.GuardianEmail
-                //SchoolId = school.SchoolId
+                Email = model.GuardianEmail,
+                IsGuardian = CustomAttributes.ValueTrue,
+                SchoolId = model.SchoolId
             };
 
             var objCheckFather = _context.Users.SingleOrDefault(opt => opt.UserName == father.UserName);
             if (objCheckFather == null && model.StudentId == 0)
             {
                 father.DateAdded = DateTime.Now;
-                father.IsActive = true;
-                father.IsPasswordChange = false;
+                father.IsActive = CustomAttributes.ActiveTrue;
+                father.IsPasswordChange = CustomAttributes.ActiveFalse;
                 var obj = _userRepo.Insert(father);
             }
             else if (objCheckFather != null && model.StudentId == 0)
@@ -157,7 +165,7 @@ namespace AdminApi.Controllers
             else
             {
                 var objFatherData = _context.Users.SingleOrDefault(opt => opt.UserId == father.UserId);
-                objFatherData.UserRoleId = 3;
+               // objFatherData.UserRoleId = setUserRole(CustomAttributes.Parents);
                 objFatherData.FirstName = model.FirstName;
                 objFatherData.MiddleName = model.MiddleName;
                 objFatherData.LastName = model.LastName;
@@ -172,8 +180,8 @@ namespace AdminApi.Controllers
             if (objCheckMother == null && model.StudentId == 0)
             {
                 mother.DateAdded = DateTime.Now;
-                mother.IsActive = true;
-                mother.IsPasswordChange = false;
+                mother.IsActive = CustomAttributes.ActiveTrue;
+                mother.IsPasswordChange = CustomAttributes.ActiveFalse;
                 var obj = _userRepo.Insert(mother);
             }
             else if (objCheckMother != null && model.SchoolId == 0)
@@ -183,7 +191,7 @@ namespace AdminApi.Controllers
             else
             {
                 objCheckMother = _context.Users.SingleOrDefault(opt => opt.UserId == mother.UserId);
-                objCheckMother.UserRoleId = 1;
+                //objCheckMother.UserRoleId = setUserRole(CustomAttributes.Parents);
                 objCheckMother.FirstName = model.FirstName;
                 objCheckMother.MiddleName = model.MiddleName;
                 objCheckMother.LastName = model.LastName;
@@ -198,8 +206,8 @@ namespace AdminApi.Controllers
             if (objCheckGuard == null && model.StudentId == 0)
             {
                 guardian.DateAdded = DateTime.Now;
-                guardian.IsActive = true;
-                guardian.IsPasswordChange = false;
+                guardian.IsActive = CustomAttributes.ActiveTrue;
+                guardian.IsPasswordChange = CustomAttributes.ActiveFalse;
                 var obj = _userRepo.Insert(guardian);
             }
             else if (objCheckGuard != null && model.SchoolId == 0)
@@ -209,7 +217,7 @@ namespace AdminApi.Controllers
             else
             {
                 objCheckGuard = _context.Users.SingleOrDefault(opt => opt.UserId == guardian.UserId);
-                objCheckGuard.UserRoleId = 7;
+               // objCheckGuard.UserRoleId = setUserRole(CustomAttributes.Parents);
                 objCheckGuard.FirstName = model.FirstName;
                 objCheckGuard.MiddleName = model.MiddleName;
                 objCheckGuard.LastName = model.LastName;
@@ -233,12 +241,15 @@ namespace AdminApi.Controllers
                 result.UserName = model.UserName;
                 result.Mobile = model.Mobile;
                 result.Email = model.Email;
-                result.IsStudent = 1;
+                result.IsStudent = CustomAttributes.ValueTrue;
                 result.DateOfBirth = model.DateOfBirth;
-                result.UserRoleId = 6;
+                result.UserRoleId = setUserRole(CustomAttributes.Student);
                 result.DateofAdmission = DateTime.Now;
                 result.ClassId = model.ClassId;
-                result.IsActive = true;
+                result.IsActive = CustomAttributes.ActiveTrue;
+                result.SchoolId = model.SchoolId;
+                result.ClassId = model.ClassId;
+                result.SchoolClassDivisionId = model.SchoolClassDivisionId;
                 var obj = _userRepo.Update(result);
                 return Ok(obj);
             }
@@ -253,12 +264,14 @@ namespace AdminApi.Controllers
                     Mobile = model.Mobile,
                     Password = DataEncript.ConvertToEncrypt(model.Mobile),
                     Email = model.Email,
-                    IsStudent = 1,
+                    IsStudent = CustomAttributes.ValueTrue,
                     DateAdded = DateTime.Now,
                     DateOfBirth = model.DateOfBirth,
-                    UserRoleId = 6,
+                    UserRoleId = setUserRole(CustomAttributes.Student),
                     DateofAdmission = DateTime.Now,
                     ClassId = model.ClassId,
+                    SchoolClassDivisionId = model.SchoolClassDivisionId,
+                    SchoolId = model.SchoolId,
                     IsActive = true,
                 };
                 try
@@ -287,6 +300,13 @@ namespace AdminApi.Controllers
             var ebookchapterlist = _ebookChapter.SelectAllByClause(p => p.eBookId == id, includeProperties: "eBook").OrderBy(s => s.ChapterDisplayOrder);
             var totalebookchapter = ebookchapterlist.Count();
             return Ok(new { data = ebookchapterlist, recordsTotal = totalebookchapter, recordsFiltered = totalebookchapter });
+        }
+        // Manage Role
+        private int setUserRole(string RoleName)
+        {
+            return (from x in _context.UserRole
+                    where x.RoleName == RoleName
+                    select x.UserRoleId).FirstOrDefault();
         }
     }
 }

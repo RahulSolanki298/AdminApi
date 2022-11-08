@@ -43,11 +43,12 @@ namespace AdminApi.Controllers
         }
 
         // GET: api/ClassMasters
-        [HttpGet]
+        [HttpGet("{schoolId}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<ClassMaster>>> GetClassMasters()
+        public async Task<ActionResult<IEnumerable<ClassMaster>>> GetClassMasters(int? schoolId)
         {
-            var classmasterlist = _classMasterRepo.SelectAll();
+            var classmasterlist = _classMasterRepo.SelectAllByClause(school => school.SchoolId == schoolId);
+
             var totalRecords = classmasterlist.Count();
             return Ok(new { data = classmasterlist, recordsTotal = totalRecords, recordsFiltered = totalRecords });
         }

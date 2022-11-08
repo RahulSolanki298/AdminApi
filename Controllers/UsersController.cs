@@ -520,26 +520,25 @@ namespace AdminApi.Controllers
         [Authorize(Roles = "Admin,User")]
         public async Task<ActionResult> GetStudentList()
         {
-            var studentList = await (from stud in _context.ParentStudent
-                               join studDT in _context.Users on stud.StudentId equals studDT.UserId
-                               join school in _context.Schools on stud.SchoolId equals school.SchoolId 
-                               join cls in _context.ClassMasters on studDT.ClassId equals cls.ClassId
-                               select new StudentModel
-                               {
-                                   StudentId = stud.StudentId,
-                                   FirstName = studDT.FirstName,
-                                   MiddleName = studDT.MiddleName,
-                                   LastName = studDT.LastName,
-                                   SchoolId = studDT.SchoolId,
-                                   ClassId = studDT.ClassId,
-                                   Mobile = studDT.Mobile,
-                                   Email = studDT.Email,
-                                   SchoolName =school.SchoolName,
-                                   ClassName = cls.ClassName,
-                                   DateOfBirth = studDT.DateOfBirth,
-                                   UserName = studDT.UserName,
-
-                               }).ToListAsync();
+            var studentList = await (from stud in _context.Users
+                                    join school in _context.Schools on stud.SchoolId equals school.SchoolId
+                                    join cls in _context.ClassMasters on stud.ClassId equals cls.ClassId
+                                    where stud.IsStudent == 1
+                                    select new StudentModel
+                                    {
+                                        StudentId = stud.UserId,
+                                        FirstName = stud.FirstName,
+                                        MiddleName = stud.MiddleName,
+                                        LastName = stud.LastName,
+                                        SchoolId = stud.SchoolId,
+                                        ClassId = stud.ClassId,
+                                        Mobile = stud.Mobile,
+                                        Email = stud.Email,
+                                        SchoolName = school.SchoolName,
+                                        ClassName = cls.ClassName,
+                                        DateOfBirth = stud.DateOfBirth,
+                                        UserName = stud.UserName,
+                                    }).ToListAsync();
             var totalStudent = studentList.Count();
             return Ok(new { data = studentList, recordsTotal = totalStudent, recordsFiltered = totalStudent });
 
