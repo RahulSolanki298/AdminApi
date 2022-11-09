@@ -43,12 +43,10 @@ namespace AdminApi.Controllers
         }
 
         // GET: api/ClassMasters
-        [HttpGet("{schoolId}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<ClassMaster>>> GetClassMasters(int? schoolId)
+        public async Task<ActionResult<IEnumerable<ClassMaster>>> GetClassMasters()
         {
-            var classmasterlist = _classMasterRepo.SelectAllByClause(school => school.SchoolId == schoolId);
-
+            var classmasterlist = _classMasterRepo.SelectAll();
             var totalRecords = classmasterlist.Count();
             return Ok(new { data = classmasterlist, recordsTotal = totalRecords, recordsFiltered = totalRecords });
         }
@@ -73,7 +71,7 @@ namespace AdminApi.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> PutClassMaster( ClassMaster classMaster)
+        public async Task<IActionResult> PutClassMaster(ClassMaster classMaster)
         {
             try
             {
@@ -91,7 +89,7 @@ namespace AdminApi.Controllers
 
         // POST: api/ClassMasters
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ClassMaster>> PostClassMaster(ClassMaster classMaster)
